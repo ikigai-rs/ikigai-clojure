@@ -11,7 +11,9 @@
 
 (def namespaces
   "The test namespaces, in the order they run."
-  '[ikigai.scaffold-test ikigai.vectors-test ikigai.pending-test])
+  '[ikigai.scaffold-test ikigai.vectors-test ikigai.pending-test
+    ikigai.postcard-test ikigai.wire-test ikigai.helpers-test ikigai.template-test
+    ikigai.compose-test])
 
 (defn- print-pending [verbose]
   (let [cases (pending/reported-cases)]
