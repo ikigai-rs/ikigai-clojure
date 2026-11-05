@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **Serving.** `ikigai.serve` serves Clojure functions as resources on a Unix socket for a
+  Rust host to mount: exact names and families (URI templates), the declared-capability
+  floor, the pre-flight check, the default Exists, typed errors as themselves, and Meta as
+  Turtle (byte for byte as core writes it: all 26 `doors` vectors), JSON and text. A real
+  host mounts it in `test/ikigai/serve_interop_test.clj`. What a server serves can change
+  while it runs (`set-endpoints!`). Every vector case is now an assertion (0 pending).
+
 - **The client.** `ikigai.client` drives a kernel over its Unix socket on both runtimes:
   the hello with its version negotiation (an older server within reach is redialed at its
   version), the five verbs, the catalog, a resource's description as data, the cache probe
