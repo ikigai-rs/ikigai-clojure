@@ -1,0 +1,23 @@
+# Every text file is checked out with LF line endings, on every platform.
+#
+# Git for Windows installs with core.autocrlf=true, which checks text files out with
+# CRLF. The shared vectors under test/vectors/ are verbatim copies that ikigai-devtools'
+# vector-drift compares by their raw bytes with the other faces' copies, and
+# test/vectors/SHA256SUMS records their digests, so a CRLF checkout would read as drift.
+# `eol=lf` on a path overrides core.autocrlf for it.
+* text=auto eol=lf
+
+# Named explicitly, so content detection can never decide them.
+test/vectors/auth_vectors.json text eol=lf
+test/vectors/capability_vectors.json text eol=lf
+test/vectors/contract_cases.json text eol=lf
+test/vectors/contract_vectors.json text eol=lf
+test/vectors/failure_class_vectors.json text eol=lf
+test/vectors/html_vectors.json text eol=lf
+test/vectors/ttt_template_cases.txt text eol=lf
+test/vectors/validation_vectors.json text eol=lf
+test/vectors/SHA256SUMS text eol=lf
+*.clj  text eol=lf
+*.edn  text eol=lf
+*.json text eol=lf
+*.md   text eol=lf

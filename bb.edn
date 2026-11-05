@@ -1,0 +1,19 @@
+;; ikigai-clojure under babashka.
+;;
+;; `bb test` runs the same runner as `clojure -X:test` (test/ikigai/test_runner.clj);
+;; `bb lint` runs clj-kondo over every source directory. The exact babashka and
+;; clj-kondo versions CI uses are pinned in .github/workflows/ci.yml; the floor
+;; below refuses an older babashka with a clear message rather than an odd failure.
+{:min-bb-version "1.13.229"
+
+ :paths ["src" "test" "examples"]
+
+ :tasks
+ {test {:doc "Run the tests; `bb test :verbose true` also lists every pending vector case."
+        :task (do (require 'ikigai.test-runner)
+                  ((resolve 'ikigai.test-runner/run)
+                   (into {} (map (fn [[k v]] [(keyword (subs k 1)) (read-string v)]))
+                         (partition 2 *command-line-args*))))}
+
+  lint {:doc "Lint with clj-kondo; any warning fails."
+        :task (shell "clj-kondo --lint src test examples --fail-level warning")}}}

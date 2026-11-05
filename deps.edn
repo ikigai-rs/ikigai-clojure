@@ -1,0 +1,22 @@
+;; ikigai-clojure on the JVM (the Clojure CLI).
+;;
+;; Versions are exact, never ranges or RELEASE: a test run is only evidence about
+;; the versions it ran, so CI and every contributor resolve the same jars. Move a
+;; version on purpose, in its own pull request.
+;;
+;; The library itself depends on Clojure alone. Anything added to :deps must also
+;; run under babashka (bb.edn), which cannot load arbitrary Java jars: see
+;; ROADMAP.md, step 2, for the one known case (BLAKE3).
+{:paths ["src"]
+
+ :deps {org.clojure/clojure {:mvn/version "1.12.6"}}
+
+ :aliases
+ {;; clojure -X:test        run the tests (the same runner `bb test` uses)
+  ;; clojure -X:test :verbose true   also list every pending vector case
+  :test {:extra-paths ["test" "examples"]
+         ;; The vectors' JSON reader. babashka bundles clojure.data.json, so the
+         ;; tests read JSON the same way on both runtimes.
+         :extra-deps {org.clojure/data.json {:mvn/version "2.5.2"}}
+         :exec-fn ikigai.test-runner/run
+         :exec-args {}}}}

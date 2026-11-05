@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Every tool version is exact, so a run is evidence about the versions it ran.
+# The same commands run locally: `bb lint`, `bb test`, `clojure -X:test`
+# (README.md, "Run the tests"). Move a version on purpose, in its own pull
+# request, beside the matching pin in bb.edn or deps.edn.
+jobs:
+  babashka:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: DeLaGuardo/setup-clojure@13.7.0
+        with:
+          bb: 1.13.229
+          clj-kondo: 2026.10.26
+      - name: Lint
+        run: bb lint
+      - name: Test
+        run: bb test
+
+  jvm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-java@v6.1.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: DeLaGuardo/setup-clojure@13.7.0
+        with:
+          cli: 1.12.6.1673
+      - name: Test
+        run: clojure -X:test

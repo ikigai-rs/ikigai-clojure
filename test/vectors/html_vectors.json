@@ -1,0 +1,538 @@
+{
+  "about": "Shared escaping and link-target vectors for HTML built from data (ledger #1813). The canonical copy is ikigai-fn's tests/vectors/html_vectors.json, consumed by tests/html_vectors.rs; a port (Python, Deno, an XSLT template) keeps a VERBATIM copy and runs every case. The expected outputs are written by hand, not computed: they are the contract. html_text and attr give the same output (attr is html_text under the name that says where it goes), so both run the 'escape' cases. A safe_href output of null means: not a link, render the label as text; otherwise the output is the trimmed target, still to be escaped with attr. percent_decode cases choose plus_is_space explicitly: out is decoded UTF-8, bytes is the decoded byte array; error is malformed_escape (offset is the input byte offset, both APIs refuse) or invalid_utf8 (only the text API refuses). A leading UTF-8 byte-order mark (U+FEFF) is preserved as data, not stripped; JavaScript TextDecoder users must set ignoreBOM: true. Every url_segment case is also a decode round trip in both plus modes. form_pairs cases parse a complete form body or query into ordered [name, value] pairs, skipping empty ampersand fields and splitting at the first equals sign; plus is space and decoding is strict and happens once. Errors are malformed_escape or invalid_utf8 with zero-based byte offsets in the original input, not decoded text. Components are checked in field order, name before value, with malformed escapes taking precedence over invalid UTF-8 within each component. A json_attr input is a list of [key, value] pairs, in order.",
+  "escape": [
+    {
+      "in": "",
+      "out": ""
+    },
+    {
+      "in": "plain text",
+      "out": "plain text"
+    },
+    {
+      "in": "&",
+      "out": "&amp;"
+    },
+    {
+      "in": "<",
+      "out": "&lt;"
+    },
+    {
+      "in": ">",
+      "out": "&gt;"
+    },
+    {
+      "in": "\"",
+      "out": "&quot;"
+    },
+    {
+      "in": "'",
+      "out": "&#39;"
+    },
+    {
+      "in": "<script>alert('x')</script>",
+      "out": "&lt;script&gt;alert(&#39;x&#39;)&lt;/script&gt;"
+    },
+    {
+      "in": "Tom & Jerry's \"show\"",
+      "out": "Tom &amp; Jerry&#39;s &quot;show&quot;"
+    },
+    {
+      "in": "&amp; is already an entity",
+      "out": "&amp;amp; is already an entity"
+    },
+    {
+      "in": "&#39;",
+      "out": "&amp;#39;"
+    },
+    {
+      "in": "tab\tline\nreturn\r",
+      "out": "tab\tline\nreturn\r"
+    },
+    {
+      "in": "nul\u0000soh\u0001esc\u001bus\u001f",
+      "out": "nul�soh�esc�us�"
+    },
+    {
+      "in": "del stays",
+      "out": "del stays"
+    },
+    {
+      "in": "café ✓ 日本 😀",
+      "out": "café ✓ 日本 😀"
+    },
+    {
+      "in": "nbsp and line sep ",
+      "out": "nbsp and line sep "
+    },
+    {
+      "in": "$h{urn:example:x}",
+      "out": "$h{urn:example:x}"
+    },
+    {
+      "in": "a=b c`d",
+      "out": "a=b c`d"
+    }
+  ],
+  "url_segment": [
+    {
+      "in": "",
+      "out": ""
+    },
+    {
+      "in": "AZaz09-._~",
+      "out": "AZaz09-._~"
+    },
+    {
+      "in": "hello world",
+      "out": "hello%20world"
+    },
+    {
+      "in": "what? #1 / 100%",
+      "out": "what%3F%20%231%20%2F%20100%25"
+    },
+    {
+      "in": "a+b=c&d",
+      "out": "a%2Bb%3Dc%26d"
+    },
+    {
+      "in": "%41",
+      "out": "%2541"
+    },
+    {
+      "in": "%",
+      "out": "%25"
+    },
+    {
+      "in": "%%2F",
+      "out": "%25%252F"
+    },
+    {
+      "in": "../etc/passwd",
+      "out": "..%2Fetc%2Fpasswd"
+    },
+    {
+      "in": "back\\slash",
+      "out": "back%5Cslash"
+    },
+    {
+      "in": "urn:cms:tags",
+      "out": "urn%3Acms%3Atags"
+    },
+    {
+      "in": "c++",
+      "out": "c%2B%2B"
+    },
+    {
+      "in": "café",
+      "out": "caf%C3%A9"
+    },
+    {
+      "in": "日",
+      "out": "%E6%97%A5"
+    },
+    {
+      "in": "😀",
+      "out": "%F0%9F%98%80"
+    },
+    {
+      "in": "tab\tnl\n",
+      "out": "tab%09nl%0A"
+    },
+    {
+      "in": "nul\u0000",
+      "out": "nul%00"
+    },
+    {
+      "in": "\"'<>",
+      "out": "%22%27%3C%3E"
+    },
+    {
+      "in": "!*'();:@&=+$,/?#[]",
+      "out": "%21%2A%27%28%29%3B%3A%40%26%3D%2B%24%2C%2F%3F%23%5B%5D"
+    }
+  ],
+  "percent_decode": [
+    {"in": "", "plus_is_space": false, "out": "", "bytes": []},
+    {"in": "plain/日", "plus_is_space": false, "out": "plain/日", "bytes": [112,108,97,105,110,47,230,151,165]},
+    {"in": "%41%2f%2F%00", "plus_is_space": false, "out": "A//\u0000", "bytes": [65,47,47,0]},
+    {"in": "caf%C3%A9", "plus_is_space": false, "out": "café", "bytes": [99,97,102,195,169]},
+    {"in": "%F0%9F%98%80", "plus_is_space": false, "out": "😀", "bytes": [240,159,152,128]},
+    {"in": "%EF%BB%BFa", "plus_is_space": false, "out": "\uFEFFa", "bytes": [239,187,191,97]},
+    {"in": "a+b%2B%20", "plus_is_space": false, "out": "a+b+ ", "bytes": [97,43,98,43,32]},
+    {"in": "a+b%2B%20", "plus_is_space": true, "out": "a b+ ", "bytes": [97,32,98,43,32]},
+    {"in": "%252B", "plus_is_space": true, "out": "%2B", "bytes": [37,50,66]},
+    {"in": "%", "plus_is_space": false, "error": "malformed_escape", "offset": 0},
+    {"in": "%G1", "plus_is_space": false, "error": "malformed_escape", "offset": 0},
+    {"in": "%1", "plus_is_space": false, "error": "malformed_escape", "offset": 0},
+    {"in": "日%0g", "plus_is_space": true, "error": "malformed_escape", "offset": 3},
+    {"in": "%41%", "plus_is_space": true, "error": "malformed_escape", "offset": 3},
+    {"in": "%%41", "plus_is_space": false, "error": "malformed_escape", "offset": 0},
+    {"in": "%FF", "plus_is_space": false, "error": "invalid_utf8", "bytes": [255]},
+    {"in": "%C3%28", "plus_is_space": true, "error": "invalid_utf8", "bytes": [195,40]},
+    {"in": "%C0%AF", "plus_is_space": false, "error": "invalid_utf8", "bytes": [192,175]},
+    {"in": "%ED%A0%80", "plus_is_space": false, "error": "invalid_utf8", "bytes": [237,160,128]},
+    {"in": "%F4%90%80%80", "plus_is_space": false, "error": "invalid_utf8", "bytes": [244,144,128,128]},
+    {"in": "%E2%82", "plus_is_space": false, "error": "invalid_utf8", "bytes": [226,130]}
+  ],
+  "form_pairs": [
+    {"in": "", "out": []},
+    {"in": "&&&", "out": []},
+    {"in": "&a=1&&b=2&", "out": [["a", "1"], ["b", "2"]]},
+    {"in": "flag&empty=&=value&=", "out": [["flag", ""], ["empty", ""], ["", "value"], ["", ""]]},
+    {"in": "tag=a&tag=b", "out": [["tag", "a"], ["tag", "b"]]},
+    {"in": "a=b=c;d", "out": [["a", "b=c;d"]]},
+    {"in": "first+name=caf%C3%A9+%2b&%26%3D=%3d%26", "out": [["first name", "café +"], ["&=", "=&"]]},
+    {"in": "a=%2526%253D%252B", "out": [["a", "%26%3D%2B"]]},
+    {"in": "日=😀&bom=%EF%BB%BF&nul=%00", "out": [["日", "😀"], ["bom", "\uFEFF"], ["nul", "\u0000"]]},
+    {"in": "?q=x#y", "out": [["?q", "x#y"]]},
+    {"in": "%", "error": "malformed_escape", "offset": 0},
+    {"in": "a=%1", "error": "malformed_escape", "offset": 2},
+    {"in": "a=%G0", "error": "malformed_escape", "offset": 2},
+    {"in": "ok=1&&bad%=x", "error": "malformed_escape", "offset": 9},
+    {"in": "日=ok&x=%41%", "error": "malformed_escape", "offset": 12},
+    {"in": "%FF=x", "error": "invalid_utf8", "offset": 0},
+    {"in": "ok=1&bad=%41%FF", "error": "invalid_utf8", "offset": 12},
+    {"in": "日=ok&x=é%FF", "error": "invalid_utf8", "offset": 11},
+    {"in": "x=%C3%28", "error": "invalid_utf8", "offset": 2},
+    {"in": "x=%E2%82", "error": "invalid_utf8", "offset": 2},
+    {"in": "x=%C0%AF", "error": "invalid_utf8", "offset": 2},
+    {"in": "x=%ED%A0%80", "error": "invalid_utf8", "offset": 2},
+    {"in": "x=%F4%90%80%80", "error": "invalid_utf8", "offset": 2},
+    {"in": "x=%41+日%FF", "error": "invalid_utf8", "offset": 9},
+    {"in": "x=%FF%G0", "error": "malformed_escape", "offset": 5},
+    {"in": "%FF=%G0", "error": "invalid_utf8", "offset": 0}
+  ],
+  "safe_href": [
+    {
+      "in": "https://example.org/a?b=1&c=2",
+      "out": "https://example.org/a?b=1&c=2",
+      "why": "https, query kept as given; escape it with attr"
+    },
+    {
+      "in": "http://example.org/",
+      "out": "http://example.org/",
+      "why": "http"
+    },
+    {
+      "in": "HTTPS://EXAMPLE.ORG/",
+      "out": "HTTPS://EXAMPLE.ORG/",
+      "why": "scheme in upper case"
+    },
+    {
+      "in": "HtTp://example.org/",
+      "out": "HtTp://example.org/",
+      "why": "scheme in mixed case"
+    },
+    {
+      "in": "/r/urn:cms:tags",
+      "out": "/r/urn:cms:tags",
+      "why": "a same-origin path"
+    },
+    {
+      "in": "/",
+      "out": "/",
+      "why": "the origin's root"
+    },
+    {
+      "in": "/café/日",
+      "out": "/café/日",
+      "why": "a path with Unicode"
+    },
+    {
+      "in": "https://éxample.org/",
+      "out": "https://éxample.org/",
+      "why": "an IDN host"
+    },
+    {
+      "in": "/%2F/evil.example",
+      "out": "/%2F/evil.example",
+      "why": "an encoded slash is not a slash"
+    },
+    {
+      "in": "/%5Cevil.example",
+      "out": "/%5Cevil.example",
+      "why": "an encoded backslash is not a backslash"
+    },
+    {
+      "in": " https://example.org/",
+      "out": "https://example.org/",
+      "why": "leading space trimmed"
+    },
+    {
+      "in": "\t\n https://example.org/ \r\n",
+      "out": "https://example.org/",
+      "why": "leading and trailing whitespace trimmed"
+    },
+    {
+      "in": "\u0000\u001f/a",
+      "out": "/a",
+      "why": "leading C0 controls trimmed, as a browser does"
+    },
+    {
+      "in": "//evil.example/",
+      "out": null,
+      "why": "a protocol-relative URL names another host"
+    },
+    {
+      "in": "/\\evil.example/",
+      "out": null,
+      "why": "a browser reads /\\ as //"
+    },
+    {
+      "in": " //evil.example/",
+      "out": null,
+      "why": "another host behind leading whitespace"
+    },
+    {
+      "in": "/\t/evil.example/",
+      "out": null,
+      "why": "a browser deletes the tab and reads //"
+    },
+    {
+      "in": "/\n/evil.example/",
+      "out": null,
+      "why": "a browser deletes the newline and reads //"
+    },
+    {
+      "in": "javascript:alert(1)",
+      "out": null,
+      "why": "javascript:"
+    },
+    {
+      "in": "JaVaScRiPt:alert(1)",
+      "out": null,
+      "why": "javascript: in mixed case"
+    },
+    {
+      "in": "JAVASCRIPT:alert(1)",
+      "out": null,
+      "why": "javascript: in upper case"
+    },
+    {
+      "in": " javascript:alert(1)",
+      "out": null,
+      "why": "javascript: behind a space"
+    },
+    {
+      "in": "\t javascript:alert(1)",
+      "out": null,
+      "why": "javascript: behind a tab"
+    },
+    {
+      "in": "java\tscript:alert(1)",
+      "out": null,
+      "why": "a tab inside the scheme, which a browser deletes"
+    },
+    {
+      "in": "java\nscript:alert(1)",
+      "out": null,
+      "why": "a newline inside the scheme"
+    },
+    {
+      "in": "java\rscript:alert(1)",
+      "out": null,
+      "why": "a carriage return inside the scheme"
+    },
+    {
+      "in": "ht\ttps://example.org/",
+      "out": null,
+      "why": "a tab inside an allowed scheme is refused too"
+    },
+    {
+      "in": "https://exa\u0000mple.org/",
+      "out": null,
+      "why": "a NUL inside the target"
+    },
+    {
+      "in": "https://example.org/\u0000",
+      "out": "https://example.org/",
+      "why": "a trailing NUL is trimmed, as a browser does"
+    },
+    {
+      "in": "https://example.org/",
+      "out": null,
+      "why": "a DEL inside the target"
+    },
+    {
+      "in": "data:text/html,<b>x</b>",
+      "out": null,
+      "why": "data:"
+    },
+    {
+      "in": "DATA:text/html;base64,PGI+",
+      "out": null,
+      "why": "data: in upper case"
+    },
+    {
+      "in": "vbscript:msgbox(1)",
+      "out": null,
+      "why": "vbscript:"
+    },
+    {
+      "in": "file:///decks/talk",
+      "out": null,
+      "why": "file:"
+    },
+    {
+      "in": "mailto:someone@example.org",
+      "out": null,
+      "why": "mailto: is not on the list"
+    },
+    {
+      "in": "r/urn:cms:tags",
+      "out": null,
+      "why": "a relative path without a leading slash"
+    },
+    {
+      "in": "./a",
+      "out": null,
+      "why": "a dot-relative path"
+    },
+    {
+      "in": "?q=1",
+      "out": null,
+      "why": "a query alone"
+    },
+    {
+      "in": "#top",
+      "out": null,
+      "why": "a fragment alone"
+    },
+    {
+      "in": "https:/example.org",
+      "out": null,
+      "why": "one slash after https:"
+    },
+    {
+      "in": "http:example.org",
+      "out": null,
+      "why": "no slashes after http:"
+    },
+    {
+      "in": "https:\\\\example.org",
+      "out": null,
+      "why": "backslashes after https:"
+    },
+    {
+      "in": "%6Aavascript:alert(1)",
+      "out": null,
+      "why": "a percent-encoded scheme is not a scheme, and not a path"
+    },
+    {
+      "in": " https://example.org/",
+      "out": null,
+      "why": "a no-break space is not trimmed"
+    },
+    {
+      "in": "ｈttps://example.org/",
+      "out": null,
+      "why": "a fullwidth letter is not ASCII"
+    },
+    {
+      "in": "",
+      "out": null,
+      "why": "empty"
+    },
+    {
+      "in": "   ",
+      "out": null,
+      "why": "only whitespace"
+    }
+  ],
+  "json_attr": [
+    {
+      "in": [],
+      "out": "{}"
+    },
+    {
+      "in": [
+        [
+          "q",
+          "a"
+        ]
+      ],
+      "out": "{&quot;q&quot;:&quot;a&quot;}"
+    },
+    {
+      "in": [
+        [
+          "tag",
+          "c++"
+        ],
+        [
+          "page",
+          "2"
+        ]
+      ],
+      "out": "{&quot;tag&quot;:&quot;c++&quot;,&quot;page&quot;:&quot;2&quot;}"
+    },
+    {
+      "in": [
+        [
+          "note",
+          "say \"hi\""
+        ]
+      ],
+      "out": "{&quot;note&quot;:&quot;say \\&quot;hi\\&quot;&quot;}"
+    },
+    {
+      "in": [
+        [
+          "path",
+          "C:\\dir"
+        ]
+      ],
+      "out": "{&quot;path&quot;:&quot;C:\\\\dir&quot;}"
+    },
+    {
+      "in": [
+        [
+          "x",
+          "a\nb\rc\td\bf\f"
+        ]
+      ],
+      "out": "{&quot;x&quot;:&quot;a\\nb\\rc\\td\\bf\\f&quot;}"
+    },
+    {
+      "in": [
+        [
+          "x",
+          "\u0000\u001f"
+        ]
+      ],
+      "out": "{&quot;x&quot;:&quot;\\u0000\\u001f&quot;}"
+    },
+    {
+      "in": [
+        [
+          "x",
+          "</script><b>&'"
+        ]
+      ],
+      "out": "{&quot;x&quot;:&quot;&lt;/script&gt;&lt;b&gt;&amp;&#39;&quot;}"
+    },
+    {
+      "in": [
+        [
+          "café",
+          "✓"
+        ]
+      ],
+      "out": "{&quot;café&quot;:&quot;✓&quot;}"
+    },
+    {
+      "in": [
+        [
+          "k",
+          "1"
+        ],
+        [
+          "k",
+          "2"
+        ]
+      ],
+      "out": "{&quot;k&quot;:&quot;1&quot;,&quot;k&quot;:&quot;2&quot;}"
+    }
+  ]
+}
