@@ -14,14 +14,14 @@
         ;; BLAKE3 for contract digests: org.apache.commons.codec.digest.Blake3 (since
         ;; 1.16). The JDK has no BLAKE3, and Commons Codec is the vetted one with no
         ;; dependencies of its own. 1.22.0 is the release of 2026-04-19.
-        commons-codec/commons-codec {:mvn/version "1.22.0"}}
+        commons-codec/commons-codec {:mvn/version "1.22.0"}
+        ;; JSON, for a resource's description (ikigai.client/describe). babashka
+        ;; bundles the same library, so both runtimes read JSON one way.
+        org.clojure/data.json {:mvn/version "2.5.2"}}
 
  :aliases
  {;; clojure -X:test        run the tests (the same runner `bb test` uses)
   ;; clojure -X:test :verbose true   also list every pending vector case
   :test {:extra-paths ["test" "examples"]
-         ;; The vectors' JSON reader. babashka bundles clojure.data.json, so the
-         ;; tests read JSON the same way on both runtimes.
-         :extra-deps {org.clojure/data.json {:mvn/version "2.5.2"}}
          :exec-fn ikigai.test-runner/run
          :exec-args {}}}}

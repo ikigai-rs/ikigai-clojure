@@ -1,0 +1,2 @@
+;; clj-kondo for this repository. `with-connection` binds like `with-open`.
+{:lint-as {ikigai.client/with-connection clojure.core/with-open}}
