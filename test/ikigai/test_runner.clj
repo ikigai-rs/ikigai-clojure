@@ -13,7 +13,7 @@
   "The test namespaces, in the order they run."
   '[ikigai.scaffold-test ikigai.vectors-test ikigai.pending-test
     ikigai.postcard-test ikigai.wire-test ikigai.helpers-test ikigai.template-test
-    ikigai.compose-test ikigai.contract-test])
+    ikigai.compose-test ikigai.contract-test ikigai.client-test ikigai.interop-test])
 
 (defn- print-pending [verbose]
   (let [cases (pending/reported-cases)]
@@ -36,8 +36,9 @@
   "Run the test namespaces and return clojure.test's summary, which carries
   `:pending` beside `:pass`, `:fail` and `:error`. With `:verbose true`, list
   every pending case by name."
-  [{:keys [verbose]}]
+  [{:keys [verbose] :as opts}]
   (apply require namespaces)
+  (reset! @(requiring-resolve 'ikigai.interop/options) (select-keys opts [:require-interop]))
   (pending/reset-reported!)
   (let [summary (apply t/run-tests namespaces)]
     (print-pending verbose)

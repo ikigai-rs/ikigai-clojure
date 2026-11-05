@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **The client.** `ikigai.client` drives a kernel over its Unix socket on both runtimes:
+  the hello with its version negotiation (an older server within reach is redialed at its
+  version), the five verbs, the catalog, a resource's description as data, the cache probe
+  and a traced read, with the kernel's typed errors thrown as `ex-info`. Proved against a
+  real `ikigai` (`test/ikigai/interop_test.clj`, skipped with its reason when no binary is
+  on PATH) and against fake servers; CI's new `interop` job builds ikigai-cli 0.2.8 and
+  runs the suite with `:require-interop true`, so a missing binary fails it.
+
 - **The contract and the pre-flight check.** `ikigai.contract` (match and contract IRIs,
   both parsers, the canonical spelling, and the v1 and v2 canonical forms) agrees with all
   47 of core's contract digests; `ikigai.check` with all 39 validation cases. BLAKE3 is

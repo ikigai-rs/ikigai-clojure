@@ -36,3 +36,43 @@ jobs:
           cli: 1.12.6.1673
       - name: Test
         run: clojure -X:test
+
+  # The real Rust host. The two jobs above skip every host-backed test (there is no
+  # `ikigai` binary on their runners); this one builds the pinned ikigai-cli from
+  # crates.io with `--locked` (the lock it was published with), cached by version so
+  # only a version bump rebuilds it, puts it on PATH, and runs the whole suite on both
+  # runtimes with `:require-interop true`, which turns a missing binary into a FAILURE:
+  # a skipped interop suite would pass green while covering nothing. No `quic` feature:
+  # this face speaks only the Unix socket. Move IKIGAI_CLI_VERSION to follow the door,
+  # beside ikigai-python's and ikigai-deno's pins.
+  interop:
+    runs-on: ubuntu-latest
+    env:
+      IKIGAI_CLI_VERSION: "0.2.8"
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-java@v6.1.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: DeLaGuardo/setup-clojure@13.7.0
+        with:
+          cli: 1.12.6.1673
+          bb: 1.13.229
+      - name: Cache ikigai-cli
+        id: cli-cache
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~/ikigai-cli
+          key: ikigai-cli-${{ env.IKIGAI_CLI_VERSION }}-${{ runner.os }}
+      - name: Build ikigai-cli
+        if: steps.cli-cache.outputs.cache-hit != 'true'
+        run: cargo install ikigai-cli --version "=$IKIGAI_CLI_VERSION" --locked --root ~/ikigai-cli
+      - name: Put the binary on PATH
+        run: |
+          echo "$HOME/ikigai-cli/bin" >> "$GITHUB_PATH"
+          "$HOME/ikigai-cli/bin/ikigai" --version
+      - name: Interop under babashka
+        run: bb test :require-interop true
+      - name: Interop on the JVM
+        run: clojure -X:test :require-interop true

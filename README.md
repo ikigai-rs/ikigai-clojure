@@ -14,8 +14,8 @@ same shared vectors, byte for byte.
 
 ## Status: being built
 
-The codec, the typed errors, the helpers, the contract digest and the pre-flight check
-are written and pinned (ROADMAP.md, steps 1 to 3); the client and serving are next.
+The codec, the typed errors, the helpers, the contract digest, the pre-flight check and
+the client are written and pinned (ROADMAP.md, steps 1 to 4); serving is next.
 Contract digests need BLAKE3, which only the JVM has here (see `ikigai.contract`). The repository holds:
 
 - the namespaces of the face (`src/ikigai/`) and of its first demo
@@ -45,7 +45,12 @@ bb lint                    # clj-kondo; any warning fails
 bb test                    # the tests under babashka
 clojure -X:test            # the same tests on the JVM
 bb test :verbose true      # also list every pending vector case by name
+bb test :require-interop true   # fail, not skip, when no `ikigai` binary is on PATH
 ```
+
+The interop tests (`test/ikigai/interop_test.clj`) start a real `ikigai` kernel, the first
+one on `PATH`, in a scratch config home; without one they are reported as skipped, with
+the reason.
 
 Both test commands run one runner (`test/ikigai/test_runner.clj`): the usual
 `clojure.test` counts, then the pending cases per vector file. A run exits 1 on any
