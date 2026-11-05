@@ -34,6 +34,7 @@
   tic-tac-toe example's to write, on top of `fill`."
   (:require [clojure.string :as str]
             [ikigai.html :as html]
+            [ikigai.text :refer [trim]]
             [ikigai.wire :as wire]))
 
 (def conditional-iri
@@ -43,17 +44,6 @@
 (def max-depth
   "How deep `$a` may nest before it is a cycle: 32."
   32)
-
-(def ^:private white-space
-  "What Rust's `str::trim` trims: Unicode White_Space."
-  (into #{} (map char) (concat (range 0x09 0x0E) [0x20 0x85 0xA0 0x1680]
-                               (range 0x2000 0x200B) [0x2028 0x2029 0x202F 0x205F 0x3000])))
-
-(defn- trim [^String s]
-  (let [n (count s)
-        start (or (first (remove #(white-space (.charAt s (int %))) (range n))) n)
-        end (or (first (remove #(white-space (.charAt s (int (dec %)))) (range n start -1))) start)]
-    (subs s start end)))
 
 (defn- refused [detail]
   (wire/typed-error :endpoint {:message (str "compose: " detail)}))

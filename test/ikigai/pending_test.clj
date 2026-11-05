@@ -22,12 +22,4 @@
 
 (deftest contract-vectors
   (let [f "contract_vectors.json"]
-    (section! f "contracts" '[ikigai.contract/contract-id ikigai.contract/contract-iri])
-    (section! f "matches" '[ikigai.contract/match-iri])
-    (section! f "parses" '[ikigai.contract/parse-match-iri
-                           ikigai.contract/parse-contract-iri
-                           ikigai.contract/canonical-iri])
     (section! f "doors" '[ikigai.serve/action-specs ikigai.serve/description->turtle])))
-
-(deftest validation-vectors
-  (section! "validation_vectors.json" "cases" '[ikigai.check/check]))

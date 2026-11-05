@@ -13,7 +13,7 @@
   "The test namespaces, in the order they run."
   '[ikigai.scaffold-test ikigai.vectors-test ikigai.pending-test
     ikigai.postcard-test ikigai.wire-test ikigai.helpers-test ikigai.template-test
-    ikigai.compose-test])
+    ikigai.compose-test ikigai.contract-test])
 
 (defn- print-pending [verbose]
   (let [cases (pending/reported-cases)]
@@ -25,7 +25,12 @@
                        (pr-str (:fns (first group)))))
       (when verbose
         (doseq [c group]
-          (println (str "      " (:case c))))))))
+          (println (str "      " (:case c)))))))
+  (when-let [skips (seq (pending/skipped-cases))]
+    (println)
+    (println (str "Skipped on this runtime: " (reduce + (map :count skips)) " cases."))
+    (doseq [{:keys [what why] n :count} skips]
+      (println (format "  %-44s %4d  %s" what n why)))))
 
 (defn run-tests
   "Run the test namespaces and return clojure.test's summary, which carries

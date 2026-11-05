@@ -4,12 +4,17 @@
 ;; the versions it ran, so CI and every contributor resolve the same jars. Move a
 ;; version on purpose, in its own pull request.
 ;;
-;; The library itself depends on Clojure alone. Anything added to :deps must also
-;; run under babashka (bb.edn), which cannot load arbitrary Java jars: see
-;; ROADMAP.md, step 2, for the one known case (BLAKE3).
+;; The library depends on Clojure and, on the JVM only, Apache Commons Codec. babashka
+;; (bb.edn) cannot load a Java jar it was not built with, so anything added here must
+;; either run under babashka too or, like Commons Codec, be found by name at run time
+;; with a clear refusal where it is absent (ikigai.contract/blake3).
 {:paths ["src"]
 
- :deps {org.clojure/clojure {:mvn/version "1.12.6"}}
+ :deps {org.clojure/clojure {:mvn/version "1.12.6"}
+        ;; BLAKE3 for contract digests: org.apache.commons.codec.digest.Blake3 (since
+        ;; 1.16). The JDK has no BLAKE3, and Commons Codec is the vetted one with no
+        ;; dependencies of its own. 1.22.0 is the release of 2026-04-19.
+        commons-codec/commons-codec {:mvn/version "1.22.0"}}
 
  :aliases
  {;; clojure -X:test        run the tests (the same runner `bb test` uses)
