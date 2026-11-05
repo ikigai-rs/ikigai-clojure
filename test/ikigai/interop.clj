@@ -59,15 +59,16 @@
       :else (do (Thread/sleep 50) (recur (- left 50))))))
 
 (defn start-kernel
-  "Start `ikigai --config-home H --files F serve <socket>` in a scratch
-  directory and wait for its socket: `{:socket s :dir d :files f :process p}`."
-  [ikigai & extra-args]
+  "Start `ikigai --config-home H --files F serve <socket>` (then
+  `serve-args`, such as a `--mount`) in a scratch directory and wait for its
+  socket: `{:socket s :dir d :files f :process p}`."
+  [ikigai & {:keys [serve-args]}]
   (let [dir (scratch-dir)
         home (doto (io/file dir "home") .mkdirs)
         files (doto (io/file dir "files") .mkdirs)
         sock (io/file dir "k.sock")
-        argv (concat [ikigai "--config-home" (str home) "--files" (str files)] extra-args
-                     ["serve" (str sock)])
+        argv (concat [ikigai "--config-home" (str home) "--files" (str files) "serve" (str sock)]
+                     serve-args)
         process (-> (ProcessBuilder. ^java.util.List (vec argv))
                     (.redirectErrorStream true)
                     (.redirectOutput (io/file dir "serve.log"))

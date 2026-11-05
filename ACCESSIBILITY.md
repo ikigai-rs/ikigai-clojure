@@ -52,7 +52,7 @@ carry unchanged, and the output of babashka, the Clojure CLI, the JVM and clj-ko
 
 - `test/ikigai/scaffold_test.clj` pins the stub exception's message and data, and that every
   public var has a docstring.
-- `test/ikigai/pending_test.clj` and `test/ikigai/vectors_test.clj` carry the failure
+- `test/ikigai/vectors_test.clj` and the pending report (`test/ikigai/pending.clj`) carry the failure
   messages quoted above; both were made to fail on purpose (a function implemented, a vector
   file changed by one byte) and printed those messages, on 2026-11-05.
 - **No assistive technology or automated accessibility checker has been used on this

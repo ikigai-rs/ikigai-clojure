@@ -14,8 +14,8 @@ same shared vectors, byte for byte.
 
 ## Status: being built
 
-The codec, the typed errors, the helpers, the contract digest, the pre-flight check and
-the client are written and pinned (ROADMAP.md, steps 1 to 4); serving is next.
+The codec, the typed errors, the helpers, the contract digest, the pre-flight check, the
+client and serving are written and pinned (ROADMAP.md, steps 1 to 5).
 Contract digests need BLAKE3, which only the JVM has here (see `ikigai.contract`). The repository holds:
 
 - the namespaces of the face (`src/ikigai/`) and of its first demo
