@@ -20,10 +20,28 @@
   (t/inc-report-counter :pending)
   (swap! reported conj m))
 
+(defonce ^:private skipped (atom []))
+
+(defmethod t/report :skipped [m]
+  (t/inc-report-counter :skipped)
+  (swap! skipped conj m))
+
 (defn reset-reported!
-  "Forget the pending cases reported so far."
+  "Forget the pending and skipped cases reported so far."
   []
-  (reset! reported []))
+  (reset! reported [])
+  (reset! skipped []))
+
+(defn skip!
+  "Report `n` cases of `what` as skipped on this runtime, saying `why`. A
+  skipped case is not a pass: the runner prints every skip with its reason."
+  [what n why]
+  (t/do-report {:type :skipped :what what :count n :why why}))
+
+(defn skipped-cases
+  "The skips reported since the last reset."
+  []
+  @skipped)
 
 (defn reported-cases
   "The pending cases reported since the last reset."

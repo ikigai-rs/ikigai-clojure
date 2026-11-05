@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **The contract and the pre-flight check.** `ikigai.contract` (match and contract IRIs,
+  both parsers, the canonical spelling, and the v1 and v2 canonical forms) agrees with all
+  47 of core's contract digests; `ikigai.check` with all 39 validation cases. BLAKE3 is
+  Apache Commons Codec's (`commons-codec` 1.22.0) on the JVM; babashka has no BLAKE3, so
+  there a contract digest refuses with a sentence naming the JVM path and the test runner
+  reports those cases as skipped, with that reason.
+
 - **The codec, the typed errors and the helpers.** `ikigai.postcard` and `ikigai.wire`
   (calls, replies, the hello, framing, every typed error with its Display, failure class
   and HTTP status, and the per-peer downgrade), pinned by ikigai-python's byte literals
