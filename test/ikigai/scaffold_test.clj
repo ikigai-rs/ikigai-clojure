@@ -9,7 +9,7 @@
   "Every namespace of the face and its examples."
   '[ikigai.scaffold ikigai.postcard ikigai.wire ikigai.contract ikigai.capability
     ikigai.check ikigai.template ikigai.html ikigai.auth ikigai.base64 ikigai.iri ikigai.compose ikigai.text
-    ikigai.client ikigai.serve
+    ikigai.client ikigai.serve ikigai.explore
     ikigai.example.tictactoe-store ikigai.example.tictactoe-template])
 
 (deftest every-namespace-loads-and-says-what-it-is
