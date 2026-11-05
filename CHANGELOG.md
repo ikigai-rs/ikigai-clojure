@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **Exploring from a REPL.** `ikigai.explore`: connect to a kernel in one call; `source`,
+  `sink`, `delete!`, `exists?`, `meta` (Turtle, text, JSON, or JSON-LD the kernel
+  transrepts to, parsed), `catalog`, `describe`, `args`, `cached?` and `trace` on one
+  session connection; and `serve!`/`unserve!`, which put a Clojure function on the session's
+  peer socket as a resource a running kernel mounts, composable with its built-ins.
+  `examples/explore.clj` is a guided session, and `test/ikigai/explore_test.clj` the same
+  session as assertions. README gains "Explore from a REPL"; ROADMAP.md now says what is
+  done and what is left.
+
 - **Serving.** `ikigai.serve` serves Clojure functions as resources on a Unix socket for a
   Rust host to mount: exact names and families (URI templates), the declared-capability
   floor, the pre-flight check, the default Exists, typed errors as themselves, and Meta as

@@ -12,21 +12,48 @@ beside [ikigai-python](https://github.com/ikigai-rs/ikigai-python),
 [ikigai-dotnet](https://github.com/ikigai-rs/ikigai-dotnet). All of them are held to the
 same shared vectors, byte for byte.
 
-## Status: being built
+## Status
 
-The codec, the typed errors, the helpers, the contract digest, the pre-flight check, the
-client and serving are written and pinned (ROADMAP.md, steps 1 to 5).
-Contract digests need BLAKE3, which only the JVM has here (see `ikigai.contract`). The repository holds:
+The face is built through ROADMAP.md step 5: the codec and the wire, the typed errors, the
+helpers, the contract digest and the pre-flight check, the client, and serving, each held
+to the shared vectors (every case is an assertion) and the client and server to a real
+`ikigai` binary. QUIC is not built. Contract digests need BLAKE3, which only the JVM has
+here (ROADMAP.md, "Left"). The tic-tac-toe demo under `examples/` is left as the first
+thing to build with the face.
 
-- the namespaces of the face (`src/ikigai/`) and of its first demo
-  (`examples/ikigai/example/`), each public function with a docstring saying what it
-  must do and what proves it, and a body that throws `not implemented yet`;
-- the shared vectors (`test/vectors/`), copied verbatim, with their sources and commits
-  in [`test/vectors/README.md`](test/vectors/README.md);
-- tests that run today: each vector file is checked against its recorded digest and its
-  shape, and every vector case is reported as **pending** until the function it waits on
-  is written;
-- [`ROADMAP.md`](ROADMAP.md): the order to build the face in.
+## Explore from a REPL
+
+`ikigai.explore` makes a REPL session the way in: connect to a kernel in one call, look
+around, read and write with plain functions that return Clojure data, and serve a Clojure
+function as a resource the kernel can use and compose.
+
+```clojure
+(require '[ikigai.explore :as ik])
+
+(ik/start-peer!)                      ; your Clojure resources' socket; start it first
+;; in a terminal:
+;;   ikigai --files /tmp/ik/files serve /tmp/ik/kernel.sock \
+;;          --mount urn:clj:=/tmp/ikigai-clj-$USER/peer.sock
+(ik/connect! "/tmp/ik/kernel.sock")
+
+(ik/catalog "fn")                     ; what is here?
+(ik/args "urn:iki:fn:toUpper")        ; what does it take?
+(ik/source "urn:iki:fn:toUpper" {:in "hi"})          ;=> "HI"
+(ik/sink "urn:file:hello.txt" "hello from Clojure")
+
+(ik/serve! "urn:clj:greet" {:args ["who"]} (fn [{:keys [who]}] (str "Hello, " who "!")))
+(ik/source "urn:clj:greet" {:who "Ada"})             ;=> "Hello, Ada!"
+;; and in the ikigai REPL: source urn:clj:greet who=Ada
+```
+
+A kernel's typed error arrives as an `ex-info` whose data names `:ikigai.error/kind`
+(`:unresolved`, `:denied`, `:not-found`, …) and whose message is the kernel's own
+sentence. [`examples/explore.clj`](examples/explore.clj) is a guided session: start a
+kernel, read, write, serve a Clojure resource and use it from the `ikigai` REPL, compose it
+with a built-in, and watch a cached answer recompute after a write.
+
+Below `ikigai.explore` are the functions it composes: `ikigai.client` (a connection you
+pass explicitly) and `ikigai.serve` (an endpoint from a full description).
 
 ## Run the tests
 
@@ -53,11 +80,11 @@ one on `PATH`, in a scratch config home; without one they are reported as skippe
 the reason.
 
 Both test commands run one runner (`test/ikigai/test_runner.clj`): the usual
-`clojure.test` counts, then the pending cases per vector file. A run exits 1 on any
-failure or error. A pending case is not a pass: its test asserts that the function it
-waits on is still a stub, so implementing the function makes that test fail until its
-cases become real assertions. CI (`.github/workflows/ci.yml`) runs the same three
-commands on every pull request.
+`clojure.test` counts, then the vector cases still waiting on a stub (none now), then the
+cases skipped on this runtime, each with its reason (on babashka, the contract digests,
+which need BLAKE3). A run exits 1 on any failure or error. CI
+(`.github/workflows/ci.yml`) runs the same commands on every pull request, and an
+`interop` job runs them again against a real `ikigai` with `:require-interop true`.
 
 ## Layout
 
@@ -71,8 +98,11 @@ commands on every pull request.
 | `src/ikigai/iri.clj` | core's IRI check and name encoding |
 | `src/ikigai/compose.clj` | the template language's filler (`$h{…}`, `$r{…}`, `$a{…}`) |
 | `src/ikigai/client.clj`, `serve.clj` | the client and the servable peer |
+| `src/ikigai/explore.clj` | the REPL layer: one session connection, serving functions as resources |
+| `src/ikigai/text.clj` | Rust's trim and Unicode White_Space |
 | `src/ikigai/scaffold.clj` | the `not implemented yet` marker; deleted when nothing uses it |
-| `examples/ikigai/example/` | the tic-tac-toe store and template filler |
+| `examples/explore.clj` | a guided REPL session |
+| `examples/ikigai/example/` | the tic-tac-toe store and views, to build (stubs) |
 | `test/vectors/` | the shared vectors |
 
 ## Accessibility
