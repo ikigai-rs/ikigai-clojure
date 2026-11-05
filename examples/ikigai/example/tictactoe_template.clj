@@ -1,5 +1,13 @@
 (ns ikigai.example.tictactoe-template
-  "The tic-tac-toe template language: a filler for the game's views.
+  "The tic-tac-toe game's views, filled from Clojure.
+
+  The template language itself is written: `ikigai.compose/fill` fills a
+  template, and `test/ikigai/compose_test.clj` holds it to the 38 template
+  cases. What is left here is the game's side: which template each view fills
+  (ikigai-tutorial's README has the table: `view:square:{x}:{y}` is
+  `template:square` with those arguments), and a `source` that asks a host for
+  templates and raw resources. ikigai-python `examples/tictactoe_app.py`
+  (`VIEWS`, `Game.source`) is the model.
 
   The language is specified in ikigai-tutorial `crates/tic-tac-toe/README.md`
   (\"The template language\"), and its normative cases are the block between
@@ -9,18 +17,17 @@
   `{name}` inside a marker is a template argument, and `urn:iki:fn:conditional`
   is answered by the filler itself.
 
-  Proved by `test/vectors/ttt_template_cases.txt`, filled with the arguments
-  and resources the README names (ikigai-python `tests/test_tictactoe_app.py`
-  sets them up as `CASE_ARGUMENTS`, `CASE_RESOURCES` and `CASE_VIEWS`). Read
-  alongside ikigai-python `examples/tictactoe_app.py` (`fill`)."
+  `test/ikigai/compose_test.clj` shows a small world of resources and two views
+  (`case-source`), the shape a game's `source` takes."
   (:require [ikigai.scaffold :as scaffold]))
 
 (defn fill
-  "Fill `template` with the arguments `args` (a map of name to text),
-  resolving each marker through `source`, a function of an IRI and an
-  argument map that returns text. Return the filled text, or refuse: with
-  compose's own error (`compose: …`) when the template is malformed, or with
-  the failing marker's error."
+  "Fill one of the game's view templates, `template`, with the arguments
+  `args` (a map of name to text), resolving each marker through `source`, a
+  function of an IRI and an argument map that returns text: a thin layer over
+  `ikigai.compose/fill` that also answers the game's own views. Return the
+  filled text, or refuse: with compose's own error (`compose: …`) when the
+  template is malformed, or with the failing marker's error."
   [template args source]
-  (scaffold/not-implemented `fill "test/vectors/ttt_template_cases.txt"
+  (scaffold/not-implemented `fill "the game's views, on ikigai.compose/fill"
                             {:template template :args args :source source}))

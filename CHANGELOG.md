@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **The codec, the typed errors and the helpers.** `ikigai.postcard` and `ikigai.wire`
+  (calls, replies, the hello, framing, every typed error with its Display, failure class
+  and HTTP status, and the per-peer downgrade), pinned by ikigai-python's byte literals
+  and `failure_class_vectors.json`; `ikigai.capability` (coverage, principals, the
+  floor and its denials), `ikigai.html`, `ikigai.auth`, `ikigai.base64`, `ikigai.template`
+  (URI templates) and `ikigai.iri` (core's `Iri::parse`, `encode_name`), each against
+  its shared vectors; and `ikigai.compose`, the template language's filler, against the
+  38 tic-tac-toe template cases. 486 of the 654 pending vector cases are now assertions.
+
 - **The scaffold.** The face's namespaces (`ikigai.postcard`, `ikigai.wire`,
   `ikigai.contract`, `ikigai.check`, `ikigai.capability`, `ikigai.template`,
   `ikigai.html`, `ikigai.auth`, `ikigai.base64`, `ikigai.client`, `ikigai.serve`) and

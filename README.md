@@ -12,9 +12,10 @@ beside [ikigai-python](https://github.com/ikigai-rs/ikigai-python),
 [ikigai-dotnet](https://github.com/ikigai-rs/ikigai-dotnet). All of them are held to the
 same shared vectors, byte for byte.
 
-## Status: a scaffold
+## Status: being built
 
-Nothing is implemented yet. The repository holds:
+The codec, the typed errors and the helpers are written and pinned (ROADMAP.md, steps 1
+and 3); the contract digest, the client and serving are next. The repository holds:
 
 - the namespaces of the face (`src/ikigai/`) and of its first demo
   (`examples/ikigai/example/`), each public function with a docstring saying what it
@@ -61,6 +62,8 @@ commands on every pull request.
 | `src/ikigai/capability.clj` | capability coverage and the served floor |
 | `src/ikigai/html.clj`, `auth.clj`, `base64.clj` | the ecosystem's escaping, URL, header and base64 rules |
 | `src/ikigai/template.clj` | URI templates, for families of resources |
+| `src/ikigai/iri.clj` | core's IRI check and name encoding |
+| `src/ikigai/compose.clj` | the template language's filler (`$h{…}`, `$r{…}`, `$a{…}`) |
 | `src/ikigai/client.clj`, `serve.clj` | the client and the servable peer |
 | `src/ikigai/scaffold.clj` | the `not implemented yet` marker; deleted when nothing uses it |
 | `examples/ikigai/example/` | the tic-tac-toe store and template filler |
