@@ -1,26 +1,9 @@
 (ns ikigai.postcard-test
-  "The postcard primitives, pinned by the byte literals ikigai-python's
-  `tests/test_postcard.py` pins."
+  "Postcard refusals and edge cases beyond wire_vectors.json."
   (:require [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]
             [ikigai.postcard :as pc]
             [ikigai.test-util :refer [bs thrown-data]]))
-
-(def varint-edges
-  [[0 [0x00]]
-   [1 [0x01]]
-   [127 [0x7f]]
-   [128 [0x80 0x01]]
-   [300 [0xac 0x02]]
-   [16384 [0x80 0x80 0x01]]
-   [4294967295 [0xff 0xff 0xff 0xff 0x0f]]
-   [18446744073709551615N [0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0x01]]])
-
-(deftest varint-edges-encode-and-decode
-  (doseq [[n encoded] varint-edges]
-    (testing n
-      (is (= (vec (bs encoded)) (vec (pc/encode-varint n))))
-      (is (= [n (count encoded)] (pc/decode-varint (bs encoded) 0))))))
 
 (deftest a-negative-or-oversized-varint-is-refused-at-encode
   (is (thrown? clojure.lang.ExceptionInfo (pc/encode-varint -1)))
@@ -42,22 +25,14 @@
     (is (= :decode (:ikigai.wire/error data)))
     (is (str/includes? (:ikigai.test-util/message data) "truncated"))))
 
-(deftest a-string-round-trips
-  (let [payload (.getBytes "héllo" "UTF-8")]
-    (is (= ["héllo" (inc (alength payload))]
-           (pc/decode-string (bs (alength payload) payload) 0)))
-    (is (= (vec (bs (alength payload) payload)) (vec (pc/encode-string "héllo"))))))
-
 (deftest invalid-utf8-is-a-decode-error
   (is (str/includes? (:ikigai.test-util/message (thrown-data #(pc/decode-string (bs 0x02 0xff 0xfe) 0)))
                      "utf-8")))
 
 (deftest bool-and-option-tags-are-strict
-  (is (= [true 1] (pc/decode-bool (bs 1) 0)))
   (is (= "invalid bool byte 0x02" (:ikigai.test-util/message (thrown-data #(pc/decode-bool (bs 2) 0)))))
   (is (= "invalid Option tag 0x07"
          (:ikigai.test-util/message (thrown-data #(pc/decode-option pc/decode-varint (bs 7) 0)))))
-  (is (= [nil 1] (pc/decode-option pc/decode-varint (bs 0) 0)))
   (is (= [5 2] (pc/decode-option pc/decode-varint (bs 1 5) 0))))
 
 (deftest a-count-larger-than-the-bytes-left-is-refused-before-looping

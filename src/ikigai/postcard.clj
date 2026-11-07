@@ -15,8 +15,8 @@
   Integers above `Long/MAX_VALUE` (a u64 can reach 2^64 - 1) are
   `clojure.lang.BigInt`s; everything smaller is a long.
 
-  Pinned by the byte literals ikigai-python's `tests/test_postcard.py` pins,
-  copied into `test/ikigai/postcard_test.clj`."
+  Pinned by the shared `test/vectors/wire_vectors.json` postcard cases,
+  with additional refusals in `test/ikigai/postcard_test.clj`."
   (:import (java.nio ByteBuffer CharBuffer)
            (java.nio.charset CodingErrorAction StandardCharsets)))
 

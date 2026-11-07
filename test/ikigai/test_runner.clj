@@ -12,7 +12,7 @@
 (def namespaces
   "The test namespaces, in the order they run."
   '[ikigai.scaffold-test ikigai.vectors-test
-    ikigai.postcard-test ikigai.wire-test ikigai.helpers-test ikigai.template-test
+    ikigai.postcard-test ikigai.wire-vectors-test ikigai.wire-test ikigai.helpers-test ikigai.template-test
     ikigai.compose-test ikigai.contract-test ikigai.client-test ikigai.interop-test ikigai.serve-test
     ikigai.serve-interop-test ikigai.explore-test])
 

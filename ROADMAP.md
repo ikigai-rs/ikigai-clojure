@@ -11,7 +11,7 @@ waiting on a stub (zero now), and the cases skipped on this runtime, each with i
 
 | Step | Namespaces | What proves it |
 |---|---|---|
-| 1. Postcard and the wire | `ikigai.postcard`, `ikigai.wire` | the byte literals ikigai-python pins (`test_postcard.py`, `test_wire.py`, `test_hello.py`), copied into `test/ikigai/postcard_test.clj` and `wire_test.clj` |
+| 1. Postcard and the wire | `ikigai.postcard`, `ikigai.wire` | `wire_vectors.json`: every postcard type, hello payload and complete IPC exchange on both runtimes (`wire_vectors_test.clj`); additional refusals and compatibility cases in `postcard_test.clj` and `wire_test.clj` |
 | 2. The contract and its digest | `ikigai.contract`, `ikigai.check` | `contract_vectors.json` (`contracts`, `matches`, `parses`: 103 cases) and `validation_vectors.json` (39) |
 | 3. Typed errors and the helpers | `ikigai.wire`, `ikigai.capability`, `ikigai.html`, `ikigai.auth`, `ikigai.base64`, `ikigai.template`, `ikigai.iri`, `ikigai.text` | `failure_class_vectors.json` (19), `capability_vectors.json` (226), `html_vectors.json` (141), `auth_vectors.json` (62), core's URI-template cases |
 | The template filler | `ikigai.compose` | `ttt_template_cases.txt` (38) |

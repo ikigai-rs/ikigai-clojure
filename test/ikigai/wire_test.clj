@@ -1,17 +1,15 @@
 (ns ikigai.wire-test
-  "The wire: the byte fixtures ikigai-python's `tests/test_wire.py` and
-  `tests/test_hello.py` pin (hand-derived from the Rust declarations, and the
-  same values ikigai-cli's ikigai-wire and ikigai-deno pin), round trips over
-  every variant, and the typed errors against `failure_class_vectors.json`."
+  "Wire refusals, version negotiation, and round trips with additional payloads.
+  Normative bytes come from wire_vectors_test; typed error behavior is also
+  checked against failure_class_vectors.json."
   (:require [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]
             [ikigai.postcard :as pc]
-            [ikigai.test-util :refer [bs plain thrown-data unhex]]
+            [ikigai.test-util :refer [bs plain thrown-data]]
             [ikigai.vectors :as vectors]
             [ikigai.wire :as wire]))
 
-;; The one IRI the byte-exact fixtures encode, in the urn:test: namespace so it never
-;; moves with a module rename. ikigai-wire, ikigai-python and ikigai-deno pin the same.
+;; The shared request target is also used in the malformed-payload tests.
 (def shared-iri "urn:test:upper")
 (def shared-iri-bytes (bs 0x0e "urn:test:upper"))
 
@@ -20,59 +18,18 @@
 
 (defn- message [f] (:ikigai.test-util/message (thrown-data f)))
 
-;; --- byte-exact fixtures -------------------------------------------------------
-
-(deftest the-shared-iri-prefix-is-its-length
-  (is (= (vec shared-iri-bytes) (vec (pc/encode-string shared-iri)))))
-
-(deftest the-entries-call-is-one-byte
-  (is (= [2] (vec (wire/encode-call {:call :entries} 9)))))
-
-(deftest the-issue-call-bytes
-  (is (= (vec (bs 0x00                     ; Call::Issue
-                  0x00                     ; Verb::Source (variant 0, not the repr(u8) 1)
-                  shared-iri-bytes
-                  0x01                     ; one argument
-                  0x02 "in" 0x01 0x02 "hi")) ; key, ArgRef::Inline, the bytes
-         (vec (wire/encode-call {:call :issue :request (upper-request)} 9)))))
-
-(deftest the-resolved-reply-bytes
-  (is (= (vec (bs 0x00 0x0a "text/plain" 0x00 0x02 "HI" 0x00 0x01))
-         (vec (wire/encode-reply {:reply :resolved
-                                  :representation (wire/representation (bs "HI") "text/plain")
-                                  :cache-status :miss}
-                                 9)))))
-
-(deftest framing-is-a-u32-big-endian-length
-  (is (= [0 0 0 1 2] (vec (wire/frame (bs 2))))))
-
-(deftest the-typed-error-discriminant-is-five
-  (is (= [5 4 1 0x78] (vec (wire/encode-reply {:reply :error-typed
-                                                :error (wire/typed-error :denied {:message "x"})}
-                                               9))))
-  (is (= 5 (first (wire/encode-reply {:reply :error-typed
-                                      :error (wire/typed-error :endpoint {:message "x"})}
-                                     9)))))
-
-(deftest conflict-is-tag-8-the-reference-vector
-  (let [encoded (wire/encode-reply {:reply :error-typed
-                                    :error (wire/typed-error :conflict {:message "x"})}
-                                   9)
-        got (:error (wire/decode-reply encoded))]
-    (is (= (vec (unhex "05080178")) (vec encoded)))
-    (is (= :conflict (:ikigai.error/kind (ex-data got))))
-    (is (= "x" (:message (ex-data got))))
-    (is (false? (:transient (wire/failure-class got))))))
-
 ;; --- version negotiation and the per-peer downgrade ------------------------------
 
-(deftest a-conflict-to-a-v7-peer-is-the-v7-bytes
-  (let [conflict {:reply :error-typed :error (wire/typed-error :conflict {:message "x"})}]
-    (is (= (vec (bs 5 3 0x0b "conflict: x")) (vec (wire/encode-reply conflict 7))))
-    (is (= (vec (unhex "05080178")) (vec (wire/encode-reply conflict 8))))
-    (is (= "endpoint error: conflict: 1,1 is taken"
-           (ex-message (wire/downgrade-error (wire/typed-error :conflict {:message "1,1 is taken"})
-                                             7))))))
+(deftest a-conflict-downgrades-to-endpoint-display
+  (is (= "endpoint error: conflict: 1,1 is taken"
+         (ex-message (wire/downgrade-error (wire/typed-error :conflict {:message "1,1 is taken"})
+                                         7)))))
+
+(deftest a-conflict-stays-typed-for-a-v8-peer
+  (let [error (wire/typed-error :conflict {:message "x"})]
+    (is (= (plain error)
+           (plain (:error (wire/decode-reply
+                           (wire/encode-reply {:reply :error-typed :error error} 8))))))))
 
 (deftest accepted-versions-are-the-floor-through-ours
   (is (= [7 9] [wire/min-protocol-version wire/protocol-version]))
@@ -86,9 +43,8 @@
   (is (= :refuse (wire/connect-version 8 9)))
   (is (= :refuse (wire/connect-version 7 6))))
 
-(deftest the-hello-golden-bytes
+(deftest older-alias-and-v8-hellos-beyond-the-shared-cases
   (is (= (vec (bs "IKWH" 0 0 0 7 1)) (vec (wire/encode-hello 7 :alias))))
-  (is (= (vec (bs "IKWH" 0 0 0 7 0)) (vec (wire/encode-hello 7))))
   (is (= (vec (bs "IKWH" 0 0 0 8 0)) (vec (wire/encode-hello 8)))))
 
 (deftest the-hello-decode-is-prefix-only-and-hint-tolerant
