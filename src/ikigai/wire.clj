@@ -40,9 +40,8 @@
   left before looping over it.
 
   Proved by `test/vectors/failure_class_vectors.json` (the typed errors: tag,
-  class, display, HTTP status) and, until a shared wire vector file exists, by
-  the byte fixtures in ikigai-python `tests/test_wire.py` and
-  `tests/test_hello.py`, copied into `test/ikigai/wire_test.clj`."
+  class, display, HTTP status) and `test/vectors/wire_vectors.json` (postcard
+  types, hello payloads and complete framed IPC exchanges)."
   (:require [clojure.string :as str]
             [ikigai.postcard :as pc]))
 

@@ -16,6 +16,7 @@ test/vectors/failure_class_vectors.json text eol=lf
 test/vectors/html_vectors.json text eol=lf
 test/vectors/ttt_template_cases.txt text eol=lf
 test/vectors/validation_vectors.json text eol=lf
+test/vectors/wire_vectors.json text eol=lf
 test/vectors/SHA256SUMS text eol=lf
 *.clj  text eol=lf
 *.edn  text eol=lf

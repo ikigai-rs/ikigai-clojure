@@ -10,7 +10,12 @@
 
 ;; Each JSON section: the keys every row has, and the keys some rows add.
 (def shapes
-  {"auth_vectors.json"
+  {"wire_vectors.json"
+   {"postcard" [#{"name" "type" "value" "hex"}]
+    "hello" [#{"name" "about" "version" "mode" "payload" "framed"}]
+    "exchanges" [#{"name" "transport" "peer_version" "about" "call" "call_payload"
+                   "reply_payload" "client_writes" "server_writes"}]}
+   "auth_vectors.json"
    {"basic" [#{"name" "source" "user" "password" "expect"}]
     "basic_refusals" [#{"name" "source" "user" "password" "error"}]
     "bearer" [#{"name" "source" "token" "expect"}]
@@ -48,7 +53,10 @@
 
 ;; The non-row fields each file must carry, and their values where they are fixed.
 (def fields
-  {"auth_vectors.json" {"about" string? "version" #{1}}
+  {"wire_vectors.json" {"about" string? "protocol_version" #{10}
+                         "min_protocol_version" #{7} "hello_magic" #{"494b5748"}
+                         "max_frame" #{67108864}}
+   "auth_vectors.json" {"about" string? "version" #{1}}
    "capability_vectors.json" {"about" string? "form" #{"ikigai:capability:v1"}}
    "contract_vectors.json" {"about" string?
                             "form" #{"ikigai:contract:v1"}
