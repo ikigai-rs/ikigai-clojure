@@ -7,11 +7,11 @@ claim. Adapted from the [ACCESSIBILITY.md template](https://github.com/mgifford/
 
 | Field | Value |
 |---|---|
-| Target | WCAG 2.2 Level AA, applied to text output; this repository writes no HTML |
+| Target | WCAG 2.2 Level AA, applied to text output; this repository provides no web UI |
 | Status | Evaluation in progress. No conformance claim. |
 | Owner | the maintainers of this repository |
 | Report a barrier | [a GitHub issue](https://github.com/ikigai-rs/ikigai-clojure/issues/new?labels=accessibility) with the `accessibility` label; anything security-sensitive through [private vulnerability reporting](https://github.com/ikigai-rs/ikigai-clojure/security/advisories/new) |
-| Last reviewed | 2026-11-05 |
+| Last reviewed | 2026-11-13 (UTC) |
 
 ## What it emits that people read
 
@@ -47,32 +47,60 @@ unchanged, and the output of babashka, the Clojure CLI, the JVM, clj-kondo and `
   floor's denials against `capability_vectors.json`.
 - **A failure says what to do** where there is something to do: start a kernel, connect
   first, update the older side, compute on the JVM.
-- **No credential reaches an error.** The auth and base64 refusals carry a code, never the
-  user id, password, token or input; a test asserts it.
+- **Auth and base64 refusals carry a code**, rather than echoing the user id, password,
+  token or input. The credential regression test checks the Basic-auth fixture secret;
+  it is not a general audit of every error path.
 
 ## How it is tested
 
-- `test/ikigai/wire_test.clj` pins every typed error's display; `helpers_test.clj` the
-  auth, base64, percent-decoding and capability sentences; `client_test.clj` and
-  `interop_test.clj` the connection messages, against fake servers and a real kernel.
-- **No assistive technology or automated accessibility checker has been used on this
-  output.** Nothing measures the terminal text beyond reading it.
+Every named check has a result: Pass, Fail or Blocked, with evidence. A Pass covers only
+the stated check, not overall accessibility or WCAG conformance. Unrun checks are Blocked.
+
+The checks below were run on 2026-11-13 (UTC), on main commit
+[`925d56364d612dfec24ef7a4e1f147468ad949b8`](https://github.com/ikigai-rs/ikigai-clojure/commit/925d56364d612dfec24ef7a4e1f147468ad949b8),
+before this documentation update. Runtime versions: babashka 1.13.229; Clojure 1.12.6,
+Clojure CLI 1.12.6.1673, Temurin OpenJDK 21.0.13+9. Unless a row says otherwise, its
+command is `bb test` and `clojure -X:test`, which CI repeats. These are functional tests,
+not automated accessibility checkers or tests with assistive technology. With no `ikigai`
+binary on PATH, these runs passed 107 tests each (3,881 assertions on babashka, 4,102 on
+the JVM), skipping 18 host-backed cases on both runtimes and 73 additional digest cases
+on babashka. A skipped case is not a Pass.
+
+| Check | Result | Evidence |
+|---|---|---|
+| Typed error display and failure classification | Pass | `test/ikigai/wire_test.clj`: exact display text against shared failure vectors, typed error round trips and malformed-wire refusals. Does not measure comprehension or spoken presentation. |
+| Capability denials and helper refusals | Pass | `test/ikigai/helpers_test.clj`: capability vectors, auth/base64 refusal codes and selected exact percent-decoding messages; `test/ikigai/template_test.clj` and `test/ikigai/compose_test.clj`: malformed-template refusals. Does not evaluate whether every refusal is actionable. |
+| Client connection guidance | Pass | `test/ikigai/client_test.clj`: fake-server version mismatch and hang-up, and missing-server guidance. Does not test how a terminal or screen reader presents the exceptions. |
+| Credential concealment regression | Pass | `test/ikigai/helpers_test.clj`, `basic-refusals`: checks that the Basic-auth fixture secret is absent from captured exception data and message. Does not audit all credentials or all error paths. |
+| Served plain-text Meta face | Pass | `test/ikigai/serve_test.clj`, `meta-answers-json-text-and-the-alias`: checks the beginning of the plain-text description. Does not check its full presentation with assistive technology. |
+| BLAKE3 refusal on babashka | Pass | `bb test`, `test/ikigai/contract_test.clj`: asserts the `:no-blake3` error kind; the runner prints the missing-library reason and JVM alternative. The message is not asserted word for word. JVM digest checks run with `clojure -X:test`; 73 digest-dependent vector cases are skipped on babashka. |
+| Test-runner counts and skip reasons | Pass | Read captured output of `bb test` and `clojure -X:test`: zero pending cases, explicit skipped-case counts and reasons. This inspects text content, not wrapping, navigation or spoken output. |
+| Meaning without color, position or symbols alone | Blocked | No comprehensive accessibility review of all emitted text was performed. Functional assertions above cover selected messages; they do not prove this rule for all output. |
+| Actionable guidance across all refusals, including the exploring layer | Blocked | No complete message review was run. `test/ikigai/explore_test.clj` does not assert the not-connected guidance despite its test name; the client checks above cover only their stated cases. |
+| Automated accessibility checker | Blocked | No automated accessibility checker has been run on this terminal/REPL output; no terminal-output checker was configured for this review. Lint and functional tests do not substitute for one. |
+| Manual keyboard and terminal/REPL navigation | Blocked | No person's interactive keyboard pass was performed; this review used unattended command execution. |
+| Screen reader | Blocked | No screen reader session was used on this output; none was available for this review. |
+| Screen magnifier | Blocked | No magnifier session was used on this output; none was available for this review. |
+| Speech input | Blocked | No speech-input session was used on this output; none was available for this review. |
+| Switch access | Blocked | No switch-access session was used on this output; none was available for this review. |
+| Braille display | Blocked | No braille display was used on this output; none was available for this review. |
+| Historical output-layout and REPL presentation review | Blocked | The prior record says output was read on 2026-11-05, but gives no terminal, REPL version or command. CI does not repeat that manual review. It is context, not current verification. |
 
 ## Known limitations
 
-Found by reading the output on 2026-11-05, not by testing with people or assistive
-technology:
-
-- The test runner's summary is a fixed-width table: a screen reader reads it line by line,
-  and a line wider than the terminal wraps.
-- An `ex-info` printed at a REPL shows its stack trace after the message; the message is
-  the first line.
+The 2026-11-05 reading recorded a fixed-width test-summary layout that may wrap in a
+narrow terminal, and stack traces following exception messages at a REPL. Neither terminal
+wrapping nor REPL presentation has been verified in this review. Their impact on screen
+readers and other assistive technology remains Blocked above.
 
 ## Contributing
 
 Read this file before changing any output listed above. Keep meaning in words, keep
 `display` equal to the shared vectors, and say in the pull request what was tested, with
-what, and what was not.
+what, and what was not. Give each check a row in a `Check | Result | Evidence` table,
+with Pass, Fail or Blocked and the test or command, tool and version, or why it could not
+run. Keep unrun assistive-technology checks as Blocked; a historical run CI does not repeat
+is Blocked with its date.
 
 ## Reporting a barrier
 
@@ -90,3 +118,4 @@ through
 |---|---|
 | 2026-11-05 | First version. |
 | 2026-11-05 | The face is built: the typed errors, refusals and connection messages it emits. |
+| 2026-11-13 | Record per-check results, reproducible scope and blocked manual and assistive-technology checks. |
